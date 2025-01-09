@@ -20,11 +20,9 @@ class Shallow_NN:
     """
     def compute_output(self, input):
         # Compute the weighted contribution of each HU
-        output = 0
-        for unit in self.hidden_units:
-            output += unit.get_contribution(input) * unit.outputWeight
-    
+        output = sum([hu.get_contribution(input) for hu in self.hidden_units])
         output += self.output_bias
+
         return output
 
 class Hidden_unit:
@@ -35,7 +33,7 @@ class Hidden_unit:
         self.bias = -1 
 
     """
-    Computes the contribution of the hidden unit
+    Computes the activation of the hidden unit
 
     Args:
         input (float): Scalar input
@@ -43,10 +41,14 @@ class Hidden_unit:
     Returns:
         contribution (float): Contribution of the unit
     """
-    def get_contribution(self, input):
-        contribution = self.bias + self.inputWeight * input # Pre-activations
-        return self.activation(contribution)
+    def get_activation(self, input):
+        return self.activation(self.get_pre_activation(input))
     
+    def get_contribution(self, input):
+        return self.get_activation(input) * self.outputWeight
+
+    def get_pre_activation(self, input):
+        return self.bias + self.inputWeight * input
 
 def ReLU(input):
     return max(0, input)
@@ -54,17 +56,15 @@ def ReLU(input):
 def main():
     network = Shallow_NN(ReLU)
 
-    # Set biases of HUs
+    # Set default weights and biases
     network.hidden_units[0].bias = -0.20
     network.hidden_units[1].bias = -0.90
     network.hidden_units[2].bias = 1.10
 
-    # Set input weights of HUs
     network.hidden_units[0].inputWeight = 0.40
     network.hidden_units[1].inputWeight = 0.90
     network.hidden_units[2].inputWeight = -0.70
 
-    # Set output weights of HUs
     network.hidden_units[0].outputWeight = -1.30
     network.hidden_units[1].outputWeight = 1.30
     network.hidden_units[2].outputWeight = 0.66
